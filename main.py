@@ -44,6 +44,9 @@ def withdrawWindow():
 root.protocol('WM_DELETE_WINDOW', withdrawWindow)
 # Main FUNCTIONS
 
+#Search engine functionality
+#Takes user input and parses their input into a google search
+#It then opens the first google result of their input
 text=StringVar()
 def search():
     data = requests.get('https://www.google.com/search?q=' + text.get())
@@ -83,8 +86,8 @@ clock.pack()
 currTime()
 
 #Icons for Buttons
-googleIcon = PhotoImage(file="google.png")
-steamIcon = PhotoImage(file="steam.png")
+googleIcon = PhotoImage(file="Desktop-Assistant/images/google.png")
+steamIcon = PhotoImage(file="Desktop-Assistant/images/steam.png")
 #Buttons
 googleButton = Button(root, image = googleIcon, command = openGoogle).pack(side = "left", anchor="e", expand=True)
 steamButton = Button(root, image = steamIcon, command = openSteam).pack(side = "right", anchor="w", expand=True)
