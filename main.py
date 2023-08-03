@@ -19,9 +19,13 @@ from tkinter import *
 from time import strftime
 from PIL import Image
 import os
+import threading
+
+text_box = None
+
 
 root = Tk()
-root.title("Personal Assistant")
+root.title("Desktop Assistant")
 root.geometry("1000x1000")
 # Centering elements
 root.grid_rowconfigure(0, weight=1)
@@ -34,7 +38,44 @@ root.grid_columnconfigure(1, weight=1)
 root.grid_columnconfigure(2, weight=1)
 root.grid_propagate(False)
 
+# Create a text file that will store user notes persistently
+def save_text():
+    global text_box  # Access the global text_box variable
+    if text_box:
+        with open("notes.txt", "w") as file:
+            text = text_box.get("1.0", END)
+            file.write(text)
+
+
 # Window Functions
+def openNotes():
+    global text_box
+    notes = Toplevel(root)
+    notes.title("Notes")
+    notes.geometry("400x400")
+
+    # Add a text box (Entry widget) to the new window
+    text_box = Text(notes, height=20, width=40)
+    text_box.pack(pady=10)
+
+    # Load the saved text if it exists
+    try:
+        with open("notes.txt", "r") as file:
+            saved_text = file.read()
+            text_box.insert("1.0", saved_text)
+    except FileNotFoundError:
+        pass
+
+    # Save the text when the window is closed
+    def on_close():
+        global text_box
+        save_text()
+        notes.destroy()
+
+    notes.protocol("WM_DELETE_WINDOW", save_text)
+    notes.wm_protocol("WM_DELETE_WINDOW", on_close)
+    notes.mainloop()
+
 def quitWindow(icon, item):
     icon.stop()
     root.destroy()
@@ -43,12 +84,15 @@ def showWindow(icon, item):
     icon.stop()
     root.after(0,root.deiconify)
 
-def withdrawWindow():
-    root.withdraw()
+def tray_icon_thread():
     img = Image.open("Desktop-Assistant/images/logo.png")
     menu = (item("Quit", quitWindow), item("Show", showWindow))
     icon = pystray.Icon("name", img, "title", menu)
     icon.run()
+
+def withdrawWindow():
+    root.withdraw()
+    threading.Thread(target=tray_icon_thread).start()
 
 def minimizeWindow():
     root.iconify()
@@ -139,11 +183,26 @@ def openSteam():
 #Icons for Application Buttons
 googleIcon = PhotoImage(file="Desktop-Assistant/images/google.png")
 steamIcon = PhotoImage(file="Desktop-Assistant/images/steam.png")
+notesIcon=PhotoImage(file="Desktop-Assistant/images/notes.png")
 #Application Buttons
 googleButton = Button(buttonFrame, image = googleIcon, command = openGoogle)
 googleButton.grid(row=3, column=0, padx=(0, 5), sticky="nsew")
 steamButton = Button(buttonFrame, image = steamIcon, command = openSteam)
 steamButton.grid(row=3, column=1, padx=(5, 0), sticky="nsew")
+
+# Button to open the Notes sccreen
+notesButton = Button(root, image=notesIcon, command=openNotes)
+notesButton.grid(row=5, column=0, columnspan=3, pady=10)
+
+#Buttons for System Control
+restartButton = Button(buttonFrame, image=restartIcon, command=restartPC)
+restartButton.grid(row=4, column=0, padx=5, pady=5)
+sleepButton = Button(buttonFrame, image=sleepIcon, command=sleepPC)
+sleepButton.grid(row=4, column=1, padx=5, pady=5)
+shutdownButton = Button(buttonFrame, image=powerIcon, command=shutdownPC)
+shutdownButton.grid(row=4, column=2, padx=5, pady=5)
+
+
 mainloop()
 
 
